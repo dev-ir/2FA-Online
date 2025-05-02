@@ -1,255 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2FA Code Generator</title>
-    <script src="https://cdn.jsdelivr.net/npm/otpauth@9.0.2/dist/otpauth.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            line-height: 1.6;
-            background-color: #f5f5f5;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>2FA Code Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/otpauth@9.0.2/dist/otpauth.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
 
-        .container {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f8f9fa;
+      color: #333;
+    }
 
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-        }
+    .container {
+      max-width: 500px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
 
-        h2 {
-            color: #3498db;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
+    h1 {
+      font-size: 1.6rem;
+      text-align: center;
+      color: #1a73e8;
+      margin-bottom: 10px;
+    }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            box-sizing: border-box;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
+    p {
+      text-align: center;
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 30px;
+    }
 
-        button {
-            background-color: #3498db;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-            transition: background-color 0.3s;
-        }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border 0.3s ease;
+    }
 
-        button:hover {
-            background-color: #2980b9;
-        }
+    input[type="text"]:focus {
+      border-color: #1a73e8;
+      outline: none;
+    }
 
-        .code-result {
-            font-size: 1.4em;
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            text-align: center;
-        }
+    button {
+      margin-top: 15px;
+      width: 100%;
+      background-color: #1a73e8;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
 
-        #timer {
-            font-weight: bold;
-            color: #27ae60;
-        }
+    button:hover {
+      background-color: #155ea6;
+    }
 
-        #qrcode {
-            margin: 20px auto;
-            text-align: center;
-        }
+    .code-result {
+      margin-top: 25px;
+      padding: 20px;
+      background-color: #f1f3f4;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+    }
 
-        .copy-btn {
-            background-color: #2ecc71;
-            margin-left: 10px;
-        }
+    .key-format {
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 5px;
+    }
 
-        .copy-btn:hover {
-            background-color: #27ae60;
-        }
+    #timer {
+      font-size: 1rem;
+      color: #27ae60;
+      margin-top: 10px;
+    }
 
-        .section {
-            margin-bottom: 30px;
-        }
+    footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-top: 40px;
+      padding: 20px;
+    }
 
-        .key-format {
-            font-size: 0.9em;
-            color: #7f8c8d;
-            margin-top: 5px;
-        }
-    </style>
+    .copy-btn {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 6px 12px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .copy-btn:hover {
+      background-color: #388e3c;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>2FA Verification Code Generator</h1>
-        <p>A complete client-side tool that works with both standard and spaced key formats</p>
+  <div class="container">
+    <h1>2FA Code Generator</h1>
+    <p>A minimal client-side TOTP generator with QR support</p>
 
-        <div class="section">
-            <h2>Enter 2FA Key</h2>
-            <input type="text" id="secret" placeholder="Enter your secret key (with or without spaces)" value="">
-            <div class="key-format">Supports both formats: ABCDEFGHIJKLMNOP or ABCD EFGH IJKL MNOP</div>
-            <button onclick="generateCode()">Generate Authentication Code</button>
+    <input type="text" id="secret" placeholder="Enter your secret key (with or without spaces)" />
+    <div class="key-format">Supports formats like: ABCDEFGHIJKLMNOP or ABCD EFGH IJKL MNOP</div>
 
-            <div class="code-result">
-                <div>Current Code: <strong><span id="code"></span></strong></div>
-                <div>Remaining time: <strong><span id="timer"></span></strong></div>
-            </div>
-        </div>
+    <button onclick="generateCode()">Generate Code</button>
+
+    <div class="code-result">
+      Current Code: <span id="code">------</span><br/>
+      <span id="timer"></span>
     </div>
 
-    <footer
-        style="background-color: #ecf0f1;color: #ecf0f1;text-align: center;padding: 25px 0;margin-top: 40px;font-family: Arial, sans-serif;box-shadow: 0 -2px 5px rgba(0,0,0,0.1);">
-        <div style="max-width: 800px; margin: 0 auto;">
-            <div style="font-size: 1.1em;margin-bottom: 10px;font-weight: bold;color: #000;">
-                <!-- Develop:<span style="color: #3498db;"><a href="https://t.me/dvhost_cloud" target="_blank" rel="noopener noreferrer">DVHOST.CLOUD</a></span> |  -->
-                Github :<span style="color: #3498db;"><a href="https://github.com/dev-ir" target="_blank" rel="noopener noreferrer">dev-ir</a></span> | 
-                Telegram :<span style="color: #3498db;"><a href="https://t.me/dvhost_cloud" target="_blank" rel="noopener noreferrer">@dvhost_cloud</a></span> | 
-            </div>
-        </div>
-    </footer>
+    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+  </div>
 
-    <script>
-        let timerInterval;
+  <footer>
+    Developed by <a href="https://t.me/dvhost_cloud" target="_blank" style="color:#1a73e8; text-decoration:none;">DVHOST.CLOUD</a> |
+    <a href="https://github.com/dev-ir" target="_blank" style="color:#1a73e8; text-decoration:none;">GitHub</a>
+  </footer>
 
-        // Function to normalize the secret key (remove spaces and make uppercase)
-        function normalizeSecret(secret) {
-            return secret.replace(/\s+/g, '').toUpperCase();
-        }
+  <script>
+    let timerInterval;
 
-        function generateCode() {
-            let secret = document.getElementById('secret').value.trim();
-            if (!secret) {
-                alert('Please enter a secret key');
-                return;
-            }
+    function normalizeSecret(secret) {
+      return secret.replace(/\s+/g, '').toUpperCase();
+    }
 
-            // Normalize the secret key
-            secret = normalizeSecret(secret);
+    function getURLParameter(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
 
-            // Validate the key contains only valid Base32 characters
-            if (!/^[A-Z2-7]+$/.test(secret)) {
-                alert('Invalid secret key format. Base32 keys should only contain A-Z and 2-7 characters.');
-                return;
-            }
+    function generateCode() {
+      let secret = document.getElementById('secret').value.trim();
 
-            // Clear previous timer
-            if (timerInterval) clearInterval(timerInterval);
+      // Check if hash parameter exists in URL and is empty
+      const hashParam = getURLParameter("hash");
+      if (!secret && hashParam) {
+        secret = hashParam;
+        document.getElementById('secret').value = hashParam;
+      }
 
-            try {
-                // Generate TOTP
-                const totp = new OTPAuth.TOTP({
-                    algorithm: 'SHA1',
-                    digits: 6,
-                    period: 30,
-                    secret: OTPAuth.Secret.fromBase32(secret)
-                });
+      if (!secret) {
+        alert('Please enter a secret key or provide it via ?hash=... in the URL');
+        return;
+      }
 
-                updateCode(totp);
+      secret = normalizeSecret(secret);
 
-                // Update every second
-                timerInterval = setInterval(() => updateCode(totp), 1000);
-            } catch (e) {
-                alert('Error generating code. Please check your key.');
-                console.error(e);
-            }
-        }
+      if (!/^[A-Z2-7]+$/.test(secret)) {
+        alert('Invalid secret key format. Use Base32 characters only.');
+        return;
+      }
 
-        function updateCode(totp) {
-            const code = totp.generate();
-            document.getElementById('code').textContent = code;
+      if (timerInterval) clearInterval(timerInterval);
 
-            const epoch = Math.round(Date.now() / 1000);
-            const remainingSeconds = 30 - (epoch % 30);
+      try {
+        const totp = new OTPAuth.TOTP({
+          algorithm: 'SHA1',
+          digits: 6,
+          period: 30,
+          secret: OTPAuth.Secret.fromBase32(secret)
+        });
 
-            // Format time display
-            const timerText = `${remainingSeconds} second${remainingSeconds !== 1 ? 's' : ''}`;
-            document.getElementById('timer').textContent = timerText;
+        updateCode(totp);
+        timerInterval = setInterval(() => updateCode(totp), 1000);
+      } catch (e) {
+        alert('Error generating code. Please check your key.');
+        console.error(e);
+      }
+    }
 
-            // Change color when time is running out
-            const timerElement = document.getElementById('timer');
-            timerElement.style.color = remainingSeconds <= 5 ? '#e74c3c' : '#27ae60';
-        }
+    function updateCode(totp) {
+      const code = totp.generate();
+      document.getElementById('code').textContent = code;
 
-        function generateQR() {
-            let secret = document.getElementById('secret').value.trim();
-            const account = document.getElementById('account').value.trim();
-            const issuer = document.getElementById('issuer').value.trim();
+      const epoch = Math.round(Date.now() / 1000);
+      const remainingSeconds = 30 - (epoch % 30);
+      const timerText = `${remainingSeconds} second${remainingSeconds !== 1 ? 's' : ''}`;
+      document.getElementById('timer').textContent = timerText;
 
-            if (!secret) {
-                alert('Please enter a secret key first');
-                return;
-            }
+      const timerElement = document.getElementById('timer');
+      timerElement.style.color = remainingSeconds <= 5 ? '#e74c3c' : '#27ae60';
+    }
 
-            if (!account) {
-                alert('Please enter an account name');
-                return;
-            }
+    function copyCode() {
+      const code = document.getElementById('code').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Code copied to clipboard!');
+      }).catch(() => {
+        alert('Failed to copy code.');
+      });
+    }
 
-            // Normalize the secret key
-            secret = normalizeSecret(secret);
-
-            try {
-                const otpauth = new OTPAuth.TOTP({
-                    issuer: issuer || '2FA Generator',
-                    label: account,
-                    algorithm: 'SHA1',
-                    digits: 6,
-                    period: 30,
-                    secret: OTPAuth.Secret.fromBase32(secret)
-                }).toString();
-
-                // Generate QR code
-                const qrcodeDiv = document.getElementById('qrcode');
-                qrcodeDiv.innerHTML = '';
-
-                QRCode.toCanvas(qrcodeDiv, otpauth, {
-                    width: 200,
-                    color: {
-                        dark: '#2c3e50',
-                        light: '#ffffff'
-                    }
-                }, (error) => {
-                    if (error) {
-                        console.error(error);
-                        alert('Error generating QR code');
-                    }
-                });
-            } catch (e) {
-                alert('Error generating QR code. Please check your inputs.');
-                console.error(e);
-            }
-        }
-
-        // Generate code automatically on page load if secret is pre-filled
-        window.onload = function () {
-            if (document.getElementById('secret').value) {
-                generateCode();
-            }
-        };
-    </script>
+    window.onload = function () {
+      const hash = getURLParameter("hash");
+      if (hash) {
+        document.getElementById('secret').value = hash;
+        generateCode();
+      }
+    };
+  </script>
 </body>
-
 </html>
