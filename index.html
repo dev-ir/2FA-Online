@@ -1,181 +1,425 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>2FA Code Generator</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/otpauth@9.0.2/dist/otpauth.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
+    :root {
+      --bg-0: #0b1020;
+      --bg-1: #121933;
+      --card: rgba(22, 30, 58, 0.72);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #eef1fb;
+      --text-dim: #9aa3c4;
+      --text-faint: #6b7398;
+      --accent: #6d8bff;
+      --accent-2: #9b6bff;
+      --accent-grad: linear-gradient(135deg, #6d8bff 0%, #9b6bff 100%);
+      --ok: #34d399;
+      --warn: #f87171;
+      --field: rgba(10, 15, 33, 0.6);
+      --field-border: rgba(255, 255, 255, 0.10);
+      --shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
     }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
 
     body {
       margin: 0;
-      padding: 0;
-      background-color: #f8f9fa;
-      color: #333;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 600px at 15% -10%, rgba(109, 139, 255, 0.18), transparent 60%),
+        radial-gradient(900px 600px at 100% 0%, rgba(155, 107, 255, 0.16), transparent 55%),
+        linear-gradient(160deg, var(--bg-0) 0%, var(--bg-1) 100%);
+      background-attachment: fixed;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 18px;
     }
 
-    .container {
-      max-width: 500px;
-      margin: 50px auto;
-      background: #fff;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    .card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--card-border);
+      border-radius: 22px;
+      padding: 32px 30px 30px;
+      box-shadow: var(--shadow);
     }
 
-    h1 {
-      font-size: 1.6rem;
-      text-align: center;
-      color: #1a73e8;
-      margin-bottom: 10px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
     }
 
-    p {
-      text-align: center;
-      font-size: 0.95rem;
-      color: #666;
-      margin-bottom: 30px;
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      background: var(--accent-grad);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 22px -6px rgba(109, 139, 255, 0.7);
+      flex-shrink: 0;
+    }
+    .logo svg { width: 24px; height: 24px; display: block; }
+
+    .brand h1 {
+      font-size: 1.18rem;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+    .brand span {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .field {
+      display: flex;
+      gap: 10px;
     }
 
     input[type="text"] {
-      width: 100%;
-      padding: 12px 16px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border 0.3s ease;
+      flex: 1;
+      min-width: 0;
+      padding: 13px 15px;
+      background: var(--field);
+      border: 1px solid var(--field-border);
+      border-radius: 12px;
+      font-size: 0.98rem;
+      color: var(--text);
+      letter-spacing: 0.02em;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-
+    input[type="text"]::placeholder { color: var(--text-faint); }
     input[type="text"]:focus {
-      border-color: #1a73e8;
       outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(109, 139, 255, 0.18);
     }
 
-    button {
-      margin-top: 15px;
-      width: 100%;
-      background-color: #1a73e8;
-      color: white;
-      padding: 12px;
+    .hint {
+      font-size: 0.76rem;
+      color: var(--text-faint);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    .btn {
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
       cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    button:hover {
-      background-color: #155ea6;
-    }
-
-    .code-result {
-      margin-top: 25px;
-      padding: 20px;
-      background-color: #f1f3f4;
-      border-radius: 8px;
-      text-align: center;
-      font-size: 1.3rem;
+      font-family: inherit;
       font-weight: 600;
+      border-radius: 12px;
+      transition: transform 0.12s ease, filter 0.2s, background 0.2s, border-color 0.2s;
     }
+    .btn:active { transform: translateY(1px) scale(0.99); }
 
-    .key-format {
-      font-size: 0.85rem;
-      color: #888;
-      margin-top: 5px;
+    .btn-primary {
+      background: var(--accent-grad);
+      color: #fff;
+      padding: 0 20px;
+      font-size: 0.95rem;
+      box-shadow: 0 10px 24px -10px rgba(109, 139, 255, 0.8);
+      white-space: nowrap;
     }
+    .btn-primary:hover { filter: brightness(1.08); }
 
-    #timer {
+    /* Result */
+    .result {
+      margin-top: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 24px 22px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      opacity: 0.55;
+      transition: opacity 0.3s;
+    }
+    .result.active { opacity: 1; }
+
+    .ring {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      flex-shrink: 0;
+    }
+    .ring svg { transform: rotate(-90deg); display: block; }
+    .ring .track { stroke: rgba(255,255,255,0.10); }
+    .ring .prog {
+      stroke: url(#ringgrad);
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear, stroke 0.3s;
+    }
+    .ring .count {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
       font-size: 1rem;
-      color: #27ae60;
-      margin-top: 10px;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
     }
 
-    footer {
-      text-align: center;
-      font-size: 0.85rem;
-      color: #aaa;
-      margin-top: 40px;
-      padding: 20px;
+    .code-wrap { flex: 1; min-width: 0; }
+    .code-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-faint);
+      margin-bottom: 4px;
+    }
+    .code {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 2.05rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      line-height: 1;
+      background: var(--accent-grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      user-select: all;
+    }
+    .code.placeholder {
+      -webkit-text-fill-color: var(--text-faint);
+      color: var(--text-faint);
     }
 
     .copy-btn {
-      display: inline-block;
-      margin-top: 15px;
-      padding: 6px 12px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      background: var(--field);
+      border: 1px solid var(--field-border);
+      color: var(--text-dim);
     }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    .copy-btn.copied { color: var(--ok); border-color: var(--ok); }
+    .copy-btn svg { width: 19px; height: 19px; }
 
-    .copy-btn:hover {
-      background-color: #388e3c;
+    /* QR */
+    .qr-toggle {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.83rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 2px;
+    }
+    .qr-toggle:hover { color: var(--text); }
+    .qr-toggle svg { width: 15px; height: 15px; transition: transform 0.2s; }
+    .qr-toggle.open svg.chev { transform: rotate(180deg); }
+
+    .qr-panel {
+      display: none;
+      margin-top: 12px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .qr-panel.show { display: block; }
+    .qr-panel canvas { display: block; margin: 0 auto; border-radius: 8px; }
+    .qr-cap { margin-top: 12px; font-size: 0.76rem; color: #64748b; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translate(-50%, 20px);
+      background: rgba(18, 25, 51, 0.95);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 11px 20px;
+      border-radius: 12px;
+      font-size: 0.86rem;
+      font-weight: 500;
+      box-shadow: 0 16px 40px -14px rgba(0,0,0,0.7);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .toast.err { border-color: rgba(248,113,113,0.5); }
+
+    footer {
+      margin-top: 26px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-faint);
+    }
+    footer a { color: var(--text-dim); text-decoration: none; font-weight: 500; }
+    footer a:hover { color: var(--accent); }
+    footer .dot { margin: 0 8px; opacity: 0.5; }
+
+    @media (max-width: 420px) {
+      .card { padding: 26px 20px 24px; }
+      .code { font-size: 1.7rem; }
+      .field { flex-direction: column; }
+      .btn-primary { padding: 13px; }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>2FA Code Generator</h1>
-    <p>A minimal client-side TOTP generator with QR support</p>
-
-    <input type="text" id="secret" placeholder="Enter your secret key (with or without spaces)" />
-    <div class="key-format">Supports formats like: ABCDEFGHIJKLMNOP or ABCD EFGH IJKL MNOP</div>
-
-    <button onclick="generateCode()">Generate Code</button>
-
-    <div class="code-result">
-      Current Code: <span id="code">------</span><br/>
-      <span id="timer"></span>
+  <main class="card">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          <circle cx="12" cy="16.5" r="1.4" fill="#fff" stroke="none"/>
+        </svg>
+      </div>
+      <div>
+        <h1>2FA Code Generator</h1>
+        <span>Client-side TOTP · nothing leaves your browser</span>
+      </div>
     </div>
 
-    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
-  </div>
+    <label for="secret">Secret key</label>
+    <div class="field">
+      <input type="text" id="secret" autocomplete="off" spellcheck="false"
+             placeholder="ABCD EFGH IJKL MNOP" />
+      <button class="btn btn-primary" onclick="generateCode()">Generate</button>
+    </div>
+    <div class="hint">Base32 only. Spaces are fine — <code>ABCDEFGH</code> or <code>ABCD EFGH</code>. You can also pass it via <code>?hash=...</code> in the URL.</div>
+
+    <section class="result" id="result">
+      <div class="ring">
+        <svg width="62" height="62" viewBox="0 0 62 62">
+          <defs>
+            <linearGradient id="ringgrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#6d8bff"/>
+              <stop offset="100%" stop-color="#9b6bff"/>
+            </linearGradient>
+          </defs>
+          <circle class="track" cx="31" cy="31" r="26" fill="none" stroke-width="5"/>
+          <circle class="prog" id="ringProg" cx="31" cy="31" r="26" fill="none" stroke-width="5"
+                  stroke-dasharray="163.36" stroke-dashoffset="0"/>
+        </svg>
+        <div class="count" id="count">–</div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-label">Current code</div>
+        <div class="code placeholder" id="code">••• •••</div>
+      </div>
+
+      <button class="copy-btn" id="copyBtn" onclick="copyCode()" title="Copy code" aria-label="Copy code">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="copyIcon">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+      </button>
+    </section>
+
+    <button class="qr-toggle" id="qrToggle" onclick="toggleQR()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 20v.01M14 20v.01M20 14v.01"/>
+      </svg>
+      Show QR code
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="qr-panel" id="qrPanel">
+      <canvas id="qrCanvas"></canvas>
+      <div class="qr-cap">Scan with Google Authenticator, Authy, etc.</div>
+    </div>
+  </main>
 
   <footer>
-    Developed by <a href="https://t.me/dvhost_cloud" target="_blank" style="color:#1a73e8; text-decoration:none;">DVHOST.CLOUD</a> |
-    <a href="https://github.com/dev-ir" target="_blank" style="color:#1a73e8; text-decoration:none;">GitHub</a>
+    <a href="https://t.me/dvhost_cloud" target="_blank" rel="noopener">DVHOST.CLOUD</a>
+    <span class="dot">•</span>
+    <a href="https://github.com/dev-ir" target="_blank" rel="noopener">GitHub</a>
   </footer>
+
+  <div class="toast" id="toast"></div>
 
   <script>
     let timerInterval;
+    const CIRC = 2 * Math.PI * 26; // ring circumference
+
+    const $ = id => document.getElementById(id);
 
     function normalizeSecret(secret) {
       return secret.replace(/\s+/g, '').toUpperCase();
     }
 
     function getURLParameter(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name);
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function toast(msg, isErr) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.className = 'toast show' + (isErr ? ' err' : '');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { t.className = 'toast' + (isErr ? ' err' : ''); }, 2200);
     }
 
     function generateCode() {
-      let secret = document.getElementById('secret').value.trim();
+      let secret = $('secret').value.trim();
 
-      // Check if hash parameter exists in URL and is empty
-      const hashParam = getURLParameter("hash");
+      const hashParam = getURLParameter('hash');
       if (!secret && hashParam) {
         secret = hashParam;
-        document.getElementById('secret').value = hashParam;
+        $('secret').value = hashParam;
       }
 
       if (!secret) {
-        alert('Please enter a secret key or provide it via ?hash=... in the URL');
+        toast('Enter a secret key (or pass ?hash=… in the URL)', true);
         return;
       }
 
       secret = normalizeSecret(secret);
 
       if (!/^[A-Z2-7]+$/.test(secret)) {
-        alert('Invalid secret key format. Use Base32 characters only.');
+        toast('Invalid key — Base32 characters only (A–Z, 2–7)', true);
         return;
       }
 
@@ -183,49 +427,84 @@
 
       try {
         const totp = new OTPAuth.TOTP({
+          issuer: 'DVHOST',
+          label: 'account',
           algorithm: 'SHA1',
           digits: 6,
           period: 30,
           secret: OTPAuth.Secret.fromBase32(secret)
         });
 
+        $('result').classList.add('active');
+        $('code').classList.remove('placeholder');
         updateCode(totp);
         timerInterval = setInterval(() => updateCode(totp), 1000);
+
+        renderQR(totp);
       } catch (e) {
-        alert('Error generating code. Please check your key.');
+        toast('Could not generate a code from that key', true);
         console.error(e);
       }
     }
 
     function updateCode(totp) {
-      const code = totp.generate();
-      document.getElementById('code').textContent = code;
+      const raw = totp.generate();
+      const pretty = raw.slice(0, 3) + ' ' + raw.slice(3);
+      $('code').textContent = pretty;
 
-      const epoch = Math.round(Date.now() / 1000);
-      const remainingSeconds = 30 - (epoch % 30);
-      const timerText = `${remainingSeconds} second${remainingSeconds !== 1 ? 's' : ''}`;
-      document.getElementById('timer').textContent = timerText;
+      const epoch = Math.floor(Date.now() / 1000);
+      const remaining = 30 - (epoch % 30);
 
-      const timerElement = document.getElementById('timer');
-      timerElement.style.color = remainingSeconds <= 5 ? '#e74c3c' : '#27ae60';
+      $('count').textContent = remaining;
+
+      const ring = $('ringProg');
+      ring.style.strokeDashoffset = CIRC * (1 - remaining / 30);
+      ring.style.stroke = remaining <= 5 ? 'var(--warn)' : 'url(#ringgrad)';
+      $('count').style.color = remaining <= 5 ? 'var(--warn)' : 'var(--text)';
     }
 
     function copyCode() {
-      const code = document.getElementById('code').innerText;
+      const code = $('code').textContent.replace(/\s+/g, '');
+      if (!/^\d{6}$/.test(code)) { toast('Generate a code first', true); return; }
       navigator.clipboard.writeText(code).then(() => {
-        alert('Code copied to clipboard!');
-      }).catch(() => {
-        alert('Failed to copy code.');
-      });
+        toast('Code copied to clipboard');
+        const btn = $('copyBtn');
+        btn.classList.add('copied');
+        $('copyIcon').innerHTML = '<path d="M20 6L9 17l-5-5"/>';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          $('copyIcon').innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>';
+        }, 1600);
+      }).catch(() => toast('Failed to copy', true));
     }
 
-    window.onload = function () {
-      const hash = getURLParameter("hash");
+    function renderQR(totp) {
+      try {
+        const uri = totp.toString();
+        QRCode.toCanvas($('qrCanvas'), uri, { width: 176, margin: 1 }, err => { if (err) console.error(err); });
+      } catch (e) { console.error(e); }
+    }
+
+    function toggleQR() {
+      const code = $('code').textContent.replace(/\s+/g, '');
+      if (!/^\d{6}$/.test(code)) { toast('Generate a code first', true); return; }
+      const panel = $('qrPanel');
+      const btn = $('qrToggle');
+      const open = panel.classList.toggle('show');
+      btn.classList.toggle('open', open);
+      btn.childNodes[2].textContent = open ? ' Hide QR code ' : ' Show QR code ';
+    }
+
+    // Enter key submits
+    $('secret').addEventListener('keydown', e => { if (e.key === 'Enter') generateCode(); });
+
+    window.addEventListener('load', () => {
+      const hash = getURLParameter('hash');
       if (hash) {
-        document.getElementById('secret').value = hash;
+        $('secret').value = hash;
         generateCode();
       }
-    };
+    });
   </script>
 </body>
 </html>
